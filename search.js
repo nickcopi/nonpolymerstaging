@@ -1,15 +1,19 @@
 
 
 /*Given a string and an object finds instances of that string in the object and retuns a new object yeah*/
-let search = (text,obj)=>{
+let search = (text,obj,filters)=>{
 	text = text.toLowerCase();
 	let matchingIndexes = [];
 	let results = [];
 	let objKeys = Object.keys(obj);
 	for(x in obj){
+		if(filters){
+			if(filters.indexOf(x) === -1)
+				continue;
+		}
 		obj[x].forEach((value,i)=>{
-		if(String(value).toLowerCase().indexOf(text) !== -1)
-			matchingIndexes.push(i);
+			if(String(value).toLowerCase().indexOf(text) !== -1)
+				matchingIndexes.push(i);
 		});
 	}
 	matchingIndexes.forEach((index)=>{
@@ -48,7 +52,6 @@ let drawResults = results=>{
 				output = meetDayParse(result[x]);
 			}
 			else if(roomIndex !== -1){
-				console.log(x.substr(meetDayIndex+5,x.length));
 				rooms[Number(x.substr(meetDayIndex+5,x.length))-1] = result[x];
 				output = result[x];
 			}
@@ -58,7 +61,7 @@ let drawResults = results=>{
 			}
 			else
 				output = result[x];
-			info += `${x}: ${output}<br>`;
+			info += `${englishify(x)}: ${output}<br>`;
 		}
 		let indexsOfToday =  [];
 		meetDays.forEach((meetDay,i)=>{
@@ -66,7 +69,6 @@ let drawResults = results=>{
 				indexsOfToday.push(i);
 		});
 		indexsOfToday.forEach(index=>{
-			info += `Meeting today at ${beginTimes[index]}!`;
 			let timeStart = decimalizeTime(beginTimes[index]);
 			if(timeStart <= now && timeStart + 1.25 >= now){
 				info += '<h1 style="color:red">THERES A CLASS RIGHT NOW!!!!</h1>';
@@ -78,6 +80,14 @@ let drawResults = results=>{
 	});
 };
 
+
+/*convert capital _ seperated string to normal text*/
+let englishify = field=>{
+	field = field.toLowerCase().split('_').join(' ');
+	if(field[0]) field = field[0].toUpperCase() + field.substr(1,field.length);
+	return field;
+
+}
 
 /*take in hhmm return hh.(mm/60)*/
 let decimalizeTime = time=>{
@@ -135,9 +145,80 @@ function onSearch(e){
 	document.getElementById('graphs').style.display = 'none';
 	document.getElementById('results').style.display = 'block';
 	document.getElementById('results').innerHTML = '';
-	drawResults(search(this.value,dump));
+	let filters = [];
+	[...document.querySelectorAll('.filterSpan')].forEach(filterSpan=>{
+		if(filterSpan.childNodes[1].checked) filters.push(filterSpan.title);
+	
+	});
+	drawResults(search(this.value,dump,filters));
 	this.value = '';
+}
 
+/*Show filterbox when searchbar is clicked*/
+let onSearchClick = e=>{
+	document.querySelector('.filterBox').style.display = 'block';
+}
 
+/*Hide the filter menu when clicking on off from the search ui*/
+let hideFilters = e=>{
+	document.querySelector('.filterBox').style.display = 'none';
+}
 
+/*return an element set up to act as a filter option*/
+let filterOption = filter => {
+	let filterSpan = document.createElement('span');
+	filterSpan.className = 'filterSpan';
+	filterSpan.title = x;
+	filterSpan.innerText = englishify(x) + ':';
+	let checkBox = document.createElement('input');
+	checkBox.type = 'checkbox';
+	checkBox.checked = true;
+	filterSpan.appendChild(checkBox);
+	filterSpan.innerHTML += '|';
+	return filterSpan
+}
+
+/*uncheck all filters*/
+let uncheckAll = e => {
+	[...document.querySelectorAll('.filterSpan')].forEach(filterSpan=>{
+		filterSpan.childNodes[1].checked = false;
+	
+	});
+}
+/*check all filters*/
+let checkAll = e => {
+	[...document.querySelectorAll('.filterSpan')].forEach(filterSpan=>{
+		filterSpan.childNodes[1].checked = true;
+	
+	});
+}
+
+let drawSearchUI = dump=>{
+	let header = document.getElementById('header');
+	let searchBar = document.createElement('input');
+	searchBar.style.width = innerWidth -16 + 'px';
+	searchBar.placeholder = 'Search';
+	searchBar.className = 'searchBar';
+	searchBar.addEventListener('keypress',onSearch);
+	searchBar.addEventListener('click',onSearchClick);
+	header.appendChild(searchBar);
+	let filterBox = document.createElement('div');
+	filterBox.className = 'filterBox';
+	filterBox.style.width = innerWidth -26 + 'px';
+	for(x in dump){
+		filterBox.appendChild(filterOption(x));
+	}
+	/*deslector*/
+	let deselectAll = document.createElement('div');
+	deselectAll.innerText = 'Deselect all';
+	deselectAll.addEventListener('click',uncheckAll);
+	filterBox.appendChild(deselectAll);
+	/*selector*/
+	let selectAll = document.createElement('div');
+	selectAll.innerText = 'Select all';
+	selectAll.addEventListener('click',checkAll);
+	filterBox.appendChild(selectAll);
+	header.appendChild(filterBox);
+	document.getElementById('results').addEventListener('click',hideFilters);
+	document.getElementById('graphs').addEventListener('click',hideFilters);
 }

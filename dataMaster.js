@@ -148,13 +148,7 @@ let renderData = dump=>{
 	/*piFromAttr('COLLEGE_DESC',dump);
 	piFromAttr('COLLEGE',dump);
 	piFromAttr('START_DATE',dump);*/
-	let header = document.getElementById('header');
-	let searchBar = document.createElement('input');
-	searchBar.style.width = innerWidth - 35 + 'px';
-	searchBar.style.height = '40px';
-	searchBar.style.fontSize = '18px';
-	searchBar.addEventListener('keypress',onSearch);
-	header.appendChild(searchBar);
+	drawSearchUI(dump);
 	for(x in dump){
 		if(dump[x].indexOf(null) === -1) piFromAttr(x,dump);
 		else barFromAttr(x,dump);
