@@ -25,6 +25,9 @@ let search = (text,obj,filters)=>{
 	});
 	return results;
 }
+
+
+/*Draws out the results from a search*/
 let drawResults = results=>{
 	let days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 	let date = new Date;
@@ -131,6 +134,7 @@ let meetDayParse = day=>{
 	return meetingDays.join();
 }
 
+/*creates a new result div and returns it*/
 let newResult = ()=>{
 	let result = document.createElement('div');
 	result.className = 'result';
@@ -147,7 +151,9 @@ function onSearch(e){
 	document.getElementById('results').innerHTML = '';
 	let filters = [];
 	[...document.querySelectorAll('.filterSpan')].forEach(filterSpan=>{
-		if(filterSpan.childNodes[1].checked) filters.push(filterSpan.title);
+		if(filterSpan.childNodes[1].checked){
+			filters.push(...JSON.parse(filterSpan.title));
+		}
 	
 	});
 	drawResults(search(this.value,dump,filters));
@@ -168,8 +174,8 @@ let hideFilters = e=>{
 let filterOption = filter => {
 	let filterSpan = document.createElement('span');
 	filterSpan.className = 'filterSpan';
-	filterSpan.title = x;
-	filterSpan.innerText = englishify(x) + ':';
+	filterSpan.title = JSON.stringify([x]);
+	filterSpan.innerText = englishify(deNumberify(x)) + ':';
 	let checkBox = document.createElement('input');
 	checkBox.type = 'checkbox';
 	checkBox.checked = true;
@@ -193,6 +199,14 @@ let checkAll = e => {
 	});
 }
 
+/*filters out the numbers from a string*/
+let deNumberify = str =>{
+	return str.split('').filter(l=>{
+		return isNaN(l);
+	}).join('');
+
+};
+
 let drawSearchUI = dump=>{
 	let header = document.getElementById('header');
 	let searchBar = document.createElement('input');
@@ -205,10 +219,22 @@ let drawSearchUI = dump=>{
 	let filterBox = document.createElement('div');
 	filterBox.className = 'filterBox';
 	filterBox.style.width = innerWidth -26 + 'px';
+	let filterList = [];
 	for(x in dump){
+		if(filterList.map(i=>{return deNumberify(i)}).indexOf(deNumberify(x)) !== -1) {
+			[...filterBox.querySelectorAll('.filterSpan')].forEach(filterElement=>{
+				if(filterElement.innerText.indexOf(englishify(deNumberify(x))) !== -1){
+					let matchingArray = JSON.parse(filterElement.title)
+					matchingArray.push(x);
+					filterElement.title = JSON.stringify(matchingArray);
+				}
+			});
+			continue;
+		}
+		filterList.push(x);
 		filterBox.appendChild(filterOption(x));
 	}
-	/*deslector*/
+	/*deselector*/
 	let deselectAll = document.createElement('div');
 	deselectAll.innerText = 'Deselect all';
 	deselectAll.addEventListener('click',uncheckAll);
