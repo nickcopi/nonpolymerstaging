@@ -207,6 +207,7 @@ let deNumberify = str =>{
 
 };
 
+/*creates the search related elements that are drawn on the page and binds their events to them*/
 let drawSearchUI = dump=>{
 	let header = document.getElementById('header');
 	let searchBar = document.createElement('input');
@@ -245,6 +246,7 @@ let drawSearchUI = dump=>{
 	selectAll.addEventListener('click',checkAll);
 	filterBox.appendChild(selectAll);
 	header.appendChild(filterBox);
+	checkAll();
 	document.getElementById('results').addEventListener('click',hideFilters);
 	document.getElementById('graphs').addEventListener('click',hideFilters);
 }
