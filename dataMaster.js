@@ -1,6 +1,5 @@
 /*used to rip json from the specific table setup, give it an html dom document and a callback function*/
 const getData = function(doc) {
-// <iframe src="data.html" id = "data" style="display:none"></iframe>
     const categories = 
         [...doc.querySelectorAll('thead > tr > th')]
             .map(e => e.innerText);
@@ -14,6 +13,15 @@ const getData = function(doc) {
         }), {});
     return obj;
 };
+
+const getJSON = ()=>{
+	fetch('dump.json').then((res)=>{
+		res.json().then((res)=>{
+			renderData(res);
+		})
+	})
+};
+
 /*Makes a new canvas and returns its ctx reference. Could probably be improved on*/
 let makeCanvas = ()=>{
 	let canvas = document.createElement('canvas');
@@ -155,6 +163,17 @@ let renderData = dump=>{
 	}
 };
 window.addEventListener('load',(e)=>{
-	const data = getData(document.getElementById('data').contentDocument);
-	renderData(data);
+	//const data = getData(document.getElementById('data').contentDocument);
+	if(config.USE_CACHE){
+		getJSON();
+	} else {
+		let iframe = document.createElement('iframe');
+		iframe.style.display = 'none';
+		iframe.src = 'data.html';
+		iframe.addEventListener('load',function(e){
+			renderData(getData(this.contentDocument));
+		});
+		document.body.appendChild(iframe);
+	}
+	//renderData(data);
 });
